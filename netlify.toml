@@ -4,6 +4,7 @@
   command = "npm install && node scripts/build.js"
 
 
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
