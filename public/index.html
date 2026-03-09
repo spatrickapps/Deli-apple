@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Costco Deli · Supply Worksheet</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Deli Order" />
+  <meta name="theme-color" content="#003087" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{font-family:-apple-system,'Segoe UI',sans-serif;background:#f0f2f5;overscroll-behavior:none}
+    input,button{font-family:inherit}
+    .safe-bottom{padding-bottom:max(72px,calc(72px + env(safe-area-inset-bottom)))}
+    .nav-bar{padding-bottom:env(safe-area-inset-bottom)}
+    #update-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+      background:#18a558;color:#fff;padding:12px 16px;text-align:center;
+      font-size:14px;font-weight:700;cursor:pointer}
+  </style>
+</head>
+<body>
+<div id="update-banner" onclick="applyUpdate()">🔄 New version available — tap to update</div>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+<script>
+var SW_CODE=`const CACHE='deli-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['/'])).then(()=>self.skipWaiting()))});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;if(e.request.url.includes('/.netlify/functions/'))return;e.respondWith(caches.open(CACHE).then(async c=>{const r=await c.match(e.request);const f=fetch(e.request).then(res=>{if(res&&res.status===200)c.put(e.request,res.clone());return res}).catch(()=>null);return r||await f}))});self.addEventListener('message',e=>{if(e.data==='skipWaiting')self.skipWaiting()});`;
+var swReg=null,newWorker=false;
+function applyUpdate(){if(newWorker&&swReg&&swReg.waiting)swReg.waiting.postMessage('skipWaiting')}
+if('serviceWorker'in navigator){
+  var blob=new Blob([SW_CODE],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).then(function(reg){
+    swReg=reg;
+    reg.addEventListener('updatefound',function(){
+      var nw=reg.installing;
+      nw.addEventListener('statechange',function(){
+        if(nw.state==='installed'&&navigator.serviceWorker.controller){
+          newWorker=true;
+          document.getElementById('update-banner').style.display='block';
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload()});
+}
+</script>
+
+<script src="/app.min.js"></script>
+</body>
+</html>
