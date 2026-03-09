@@ -1,6 +1,9 @@
 {
   "name": "deli-app",
   "version": "1.0.0",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.0",
     "@babel/preset-react": "^7.23.0",
