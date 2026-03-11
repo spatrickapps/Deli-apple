@@ -244,29 +244,36 @@ function encodeCode128(text) {
 
 function Barcode({ value, label }) {
   const bars = useMemo(() => encodeCode128(value), [value]);
-  const totalW = bars.reduce((s, b) => s + b.w, 0);
+
   if (!bars.length) return (
     <div style={{ textAlign: "center", padding: 16, color: "#999", fontSize: 13 }}>No barcode available</div>
   );
+
+  // Each module = 2px wide, bar height = 80px — fixed physical size so scanners can read it
+  const MOD = 2;
+  const HEIGHT = 80;
+  const totalW = bars.reduce((s, b) => s + b.w, 0) * MOD;
+
   return (
-    <div style={{ textAlign: "center", padding: "12px 0" }}>
+    <div style={{ textAlign: "center", padding: "12px 0", overflowX: "auto" }}>
       <svg
-        viewBox={`0 0 ${totalW} 60`}
-        preserveAspectRatio="none"
-        style={{ width: "100%", maxWidth: 320, height: 80, display: "block", margin: "0 auto" }}
+        width={totalW}
+        height={HEIGHT}
+        style={{ display: "block", margin: "0 auto", maxWidth: "100%" }}
       >
         {(() => {
           let x = 0;
           return bars.map((b, i) => {
+            const px = b.w * MOD;
             const rect = b.black ? (
-              <rect key={i} x={x} y={0} width={b.w} height={60} fill="#000" />
+              <rect key={i} x={x} y={0} width={px} height={HEIGHT} fill="#000" />
             ) : null;
-            x += b.w;
+            x += px;
             return rect;
           });
         })()}
       </svg>
-      <div style={{ fontFamily: "monospace", fontSize: 12, letterSpacing: 1.5, color: "#333", marginTop: 4 }}>{value}</div>
+      <div style={{ fontFamily: "monospace", fontSize: 12, letterSpacing: 1.5, color: "#333", marginTop: 6 }}>{value}</div>
       {label && <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{label}</div>}
     </div>
   );
