@@ -637,6 +637,7 @@ function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ background: "#e31837", borderRadius: 6, padding: "3px 9px", fontWeight: 900, fontSize: 16, color: "#fff", letterSpacing: 1 }}>COSTCO</span>
             <span style={{ color: "rgba(255,255,255,.8)", fontSize: 12 }}>Hey, {userName}!</span>
+            <span style={{ color: "rgba(255,255,255,.4)", fontSize: 10 }}>v1.4</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isAdmin && <span style={{ background: "#e31837", color: "#fff", borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 700 }}>ADMIN</span>}
