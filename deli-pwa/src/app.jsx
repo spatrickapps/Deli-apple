@@ -221,49 +221,43 @@ function Barcode({ value, label }) {
   );
 
   const { bars, digits } = result;
-  // UPC-A spec: 9-module quiet zones required on EACH SIDE or scanners fail
-  // MOD=4px: 1-module bar = 4px, clearly visible. Height=120px for good scan angle.
-  const MOD = 4;
-  const QZ = 9;  // quiet zone modules each side
-  const H = 120;
+  // 9-module quiet zones required each side per UPC-A spec
+  // Use viewBox so SVG scales to container width while preserving bar ratios exactly
+  const MOD = 1;  // 1 unit per module in viewBox coordinates
+  const QZ = 9;
+  const H = 60;   // viewBox height units
   const barcodeW = bars.reduce((s, b) => s + b.w, 0) * MOD;
-  const totalW = barcodeW + QZ * MOD * 2;
+  const totalW = barcodeW + QZ * 2;  // total viewBox width
 
   const d = digits.map(String);
-  const leftGroup  = d.slice(1, 6).join("  ");
-  const rightGroup = d.slice(6, 11).join("  ");
 
   return (
-    <div style={{ textAlign: "center", padding: "12px 0", background: "#fff", overflowX: "auto" }}>
-      <div style={{ display: "inline-block" }}>
-        {/* shape-rendering=crispEdges prevents anti-aliasing that blurs thin bars */}
-        <svg
-          width={totalW}
-          height={H}
-          style={{ display: "block", imageRendering: "pixelated" }}
-          shapeRendering="crispEdges"
-        >
-          {/* White background including quiet zones */}
-          <rect x={0} y={0} width={totalW} height={H} fill="#fff" />
-          {(() => {
-            let x = QZ * MOD; // start after left quiet zone
-            return bars.map((b, i) => {
-              const px = b.w * MOD;
-              const rect = b.black ? <rect key={i} x={x} y={0} width={px} height={H} fill="#000" /> : null;
-              x += px;
-              return rect;
-            });
-          })()}
-        </svg>
-        {/* Digits displayed below barcode in standard UPC format */}
-        <div style={{ display: "flex", alignItems: "center", marginTop: 4, fontFamily: "monospace", fontSize: 13, color: "#000", paddingLeft: QZ * MOD, paddingRight: QZ * MOD }}>
-          <span style={{ marginRight: 4 }}>{d[0]}</span>
-          <span style={{ flex: 1, textAlign: "center" }}>{leftGroup}</span>
-          <span style={{ flex: 1, textAlign: "center" }}>{rightGroup}</span>
-          <span style={{ marginLeft: 4 }}>{d[11]}</span>
-        </div>
+    <div style={{ padding: "12px 0", background: "#fff" }}>
+      {/* viewBox lets SVG scale to any width while keeping bar proportions exact */}
+      <svg
+        viewBox={`0 0 ${totalW} ${H}`}
+        width="100%"
+        height="auto"
+        style={{ display: "block" }}
+        shapeRendering="crispEdges"
+        preserveAspectRatio="none"
+      >
+        <rect x={0} y={0} width={totalW} height={H} fill="#fff" />
+        {(() => {
+          let x = QZ;
+          return bars.map((b, i) => {
+            const w = b.w * MOD;
+            const rect = b.black ? <rect key={i} x={x} y={0} width={w} height={H} fill="#000" /> : null;
+            x += w;
+            return rect;
+          });
+        })()}
+      </svg>
+      {/* Digit display */}
+      <div style={{ display: "flex", justifyContent: "center", fontFamily: "monospace", fontSize: 13, color: "#000", letterSpacing: 2, marginTop: 4 }}>
+        {d.join("  ")}
       </div>
-      {label && <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{label}</div>}
+      {label && <div style={{ textAlign: "center", fontSize: 11, color: "#888", marginTop: 2 }}>{label}</div>}
     </div>
   );
 }
