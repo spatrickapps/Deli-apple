@@ -221,22 +221,32 @@ function Barcode({ value, label }) {
   );
 
   const { bars, digits } = result;
-  // 3px per module = 285px wide, 80px tall — scannable at any angle
-  const MOD = 3;
-  const H = 80;
-  const totalW = bars.reduce((s, b) => s + b.w, 0) * MOD;
+  // UPC-A spec: 9-module quiet zones required on EACH SIDE or scanners fail
+  // MOD=4px: 1-module bar = 4px, clearly visible. Height=120px for good scan angle.
+  const MOD = 4;
+  const QZ = 9;  // quiet zone modules each side
+  const H = 120;
+  const barcodeW = bars.reduce((s, b) => s + b.w, 0) * MOD;
+  const totalW = barcodeW + QZ * MOD * 2;
 
-  // Display exactly like the sheet: first digit, space, left 5 digits, space, right 5 digits, last digit
   const d = digits.map(String);
-  const leftGroup  = d.slice(1, 6).join(" ");
-  const rightGroup = d.slice(6, 11).join(" ");
+  const leftGroup  = d.slice(1, 6).join("  ");
+  const rightGroup = d.slice(6, 11).join("  ");
 
   return (
-    <div style={{ textAlign: "center", padding: "12px 0", background: "#fff" }}>
+    <div style={{ textAlign: "center", padding: "12px 0", background: "#fff", overflowX: "auto" }}>
       <div style={{ display: "inline-block" }}>
-        <svg width={totalW} height={H} style={{ display: "block" }}>
+        {/* shape-rendering=crispEdges prevents anti-aliasing that blurs thin bars */}
+        <svg
+          width={totalW}
+          height={H}
+          style={{ display: "block", imageRendering: "pixelated" }}
+          shapeRendering="crispEdges"
+        >
+          {/* White background including quiet zones */}
+          <rect x={0} y={0} width={totalW} height={H} fill="#fff" />
           {(() => {
-            let x = 0;
+            let x = QZ * MOD; // start after left quiet zone
             return bars.map((b, i) => {
               const px = b.w * MOD;
               const rect = b.black ? <rect key={i} x={x} y={0} width={px} height={H} fill="#000" /> : null;
@@ -245,11 +255,12 @@ function Barcode({ value, label }) {
             });
           })()}
         </svg>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, fontFamily: "monospace", fontSize: 12, color: "#000", letterSpacing: 1 }}>
-          <span>{d[0]}</span>
-          <span>{leftGroup}</span>
-          <span>{rightGroup}</span>
-          <span>{d[11]}</span>
+        {/* Digits displayed below barcode in standard UPC format */}
+        <div style={{ display: "flex", alignItems: "center", marginTop: 4, fontFamily: "monospace", fontSize: 13, color: "#000", paddingLeft: QZ * MOD, paddingRight: QZ * MOD }}>
+          <span style={{ marginRight: 4 }}>{d[0]}</span>
+          <span style={{ flex: 1, textAlign: "center" }}>{leftGroup}</span>
+          <span style={{ flex: 1, textAlign: "center" }}>{rightGroup}</span>
+          <span style={{ marginLeft: 4 }}>{d[11]}</span>
         </div>
       </div>
       {label && <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{label}</div>}
